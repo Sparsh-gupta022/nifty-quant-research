@@ -1,0 +1,45 @@
+# Experiment configuration. Changing a value here changes the experiment;
+# no engine code needs editing. Every value traces to a logged decision in docs/DECISIONS.md.
+
+data:
+  raw_path: data/raw/nifty50_niftyindices_raw.csv
+
+event:                        # 3.1
+  sigma_window: 60            # trading days used for sigma (t-60 ... t-1)
+  threshold_sigma: 2.0        # event if return < -threshold_sigma * sigma
+
+recovery:                     # 3.2 / 3.2a
+  fraction: 0.5               # 50% retracement of the event-day loss
+  price: close                # "reaches" is tested on daily Close
+
+horizon: 5                    # 3.3  holding period N (trading days t+1 ... t+N)
+
+trade:                        # 3.4
+  entry: open_t1              # Open of t+1
+  exit: close_tN              # Close of t+N
+  cost_round_trip: 0.0010     # 3.8  modelling assumption for total friction
+
+episode_gap_days: 5           # 3.5  new episode when > this many trading days since previous event
+
+baseline:                     # 3.6 / 3.6a
+  set: non_event              # non-event days only
+  exclude_post_event: false   # A1: keep post-event days
+
+bootstrap:                    # 3.6b
+  block_length: 10
+  n_replicates: 2000
+  seed: 20260923
+  ci: 0.95
+
+split:                        # 3.7
+  dev_end: "2017-12-31"       # development: start .. dev_end; out-of-sample: after dev_end
+
+robustness:                   # reported alongside, never as the formal conclusion (3.9d)
+  threshold_sigma: [1.5, 2.0, 2.5]
+  fixed_return_threshold: -0.02
+  sigma_window: [20, 60]
+  horizon: [1, 3, 5, 10]
+  block_length: [5, 10, 21]
+  cost_round_trip: [0.0005, 0.0010, 0.0020]
+  recovery_fraction: [0.5, 1.0]
+  episode_gap_days: [5, 10, 21]
